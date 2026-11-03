@@ -1,0 +1,1220 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>欸冷水餃 後台系統</title>
+</head>
+<body>
+<style>
+  :root{
+    --brand:#c0392b; --brand-dark:#922b21; --brand-soft:#fbeee9;
+    --bg:#f6f4f1; --card:#fff; --text:#2f2724; --muted:#857872; --border:#e5ddd6;
+    --ok:#2e7d52; --ok-soft:#e8f5ee; --warn:#a9740b; --warn-soft:#fdf4e0;
+    --danger:#b02a1e; --danger-soft:#fdecea; --info:#2b6ca3; --info-soft:#e8f1f8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;font-size:14px;line-height:1.6}
+
+  .app{display:flex;min-height:100vh}
+  aside{width:212px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);
+    position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+  .brand{padding:18px 16px 12px;font-size:16px;font-weight:800;border-bottom:1px solid var(--border)}
+  .brand small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
+  .side-nav{padding:10px 8px;display:flex;flex-direction:column;gap:2px;flex:1}
+  .side-nav button{display:flex;align-items:center;gap:9px;background:none;border:none;
+    padding:9px 12px;border-radius:8px;font-size:14px;font-weight:600;color:var(--muted);
+    cursor:pointer;font-family:inherit;text-align:left;width:100%}
+  .side-nav button:hover{background:var(--bg);color:var(--text)}
+  .side-nav button.active{background:var(--brand-soft);color:var(--brand)}
+  .side-nav .ico{width:19px;text-align:center;flex-shrink:0}
+  .side-foot{padding:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+  .side-foot .conn{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex-shrink:0}
+
+  .main-col{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 20px;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+  .topbar h1{font-size:17px;margin:0;font-weight:700}
+  .topbar .spacer{margin-left:auto}
+  main{padding:18px 20px 60px;max-width:1080px}
+
+  @media(max-width:860px){
+    .app{display:block}
+    aside{width:auto;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border)}
+    .brand{padding:12px 14px 10px}
+    .side-nav{flex-direction:row;overflow-x:auto;padding:8px;gap:4px}
+    .side-nav button{white-space:nowrap;padding:8px 12px}
+    .side-nav .ico{display:none}
+    .side-foot{display:none}
+    main{padding:14px 14px 50px}
+  }
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .card h2 .sub{font-weight:400;color:var(--muted);font-size:12px}
+  .card h2 .right{margin-left:auto;display:flex;gap:6px}
+  .grid{display:grid;gap:12px}
+  .grid.c4{grid-template-columns:repeat(4,1fr)}
+  .grid.c3{grid-template-columns:repeat(3,1fr)}
+  .grid.c2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:760px){.grid.c4,.grid.c3{grid-template-columns:repeat(2,1fr)}.grid.c2{grid-template-columns:1fr}}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .stat .label{font-size:12px;color:var(--muted)}
+  .stat .value{font-size:23px;font-weight:800;line-height:1.25;margin-top:2px}
+  .stat .foot{font-size:11px;color:var(--muted)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+  th{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .scroll{overflow-x:auto}
+  tr.dim td{color:var(--muted)}
+  tfoot td{font-weight:700;border-top:2px solid var(--border);border-bottom:none}
+
+  .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;font-weight:600;white-space:nowrap}
+  .pill.ok{background:var(--ok-soft);color:var(--ok)}
+  .pill.warn{background:var(--warn-soft);color:var(--warn)}
+  .pill.danger{background:var(--danger-soft);color:var(--danger)}
+  .pill.muted{background:var(--bg);color:var(--muted)}
+  .pill.info{background:var(--info-soft);color:var(--info)}
+
+  button.btn{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:9px 14px;
+    font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+  button.btn:hover{background:var(--brand-dark)}
+  button.btn:disabled{background:#d8b4ac;cursor:not-allowed}
+  button.btn.ghost{background:none;color:var(--brand);border:1px solid var(--border)}
+  button.btn.ghost:hover{background:var(--brand-soft)}
+  button.btn.plain{background:none;color:var(--muted);border:1px solid var(--border)}
+  button.btn.plain:hover{background:var(--bg);color:var(--text)}
+  button.btn.sm{padding:5px 10px;font-size:12px}
+
+  input,select,textarea{padding:8px 10px;border:1px solid var(--border);border-radius:8px;
+    font-size:14px;font-family:inherit;background:#fff;color:var(--text);width:100%}
+  input.qty{width:80px;text-align:right}
+  label.field{display:block;margin-bottom:10px}
+  label.field span{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+  .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);
+    color:#fff;padding:11px 18px;border-radius:10px;font-size:14px;z-index:100;max-width:90vw;
+    box-shadow:0 6px 24px rgba(0,0,0,.2);white-space:pre-line}
+  .toast.err{background:var(--danger)}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:flex;
+    align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+  .modal{background:var(--card);border-radius:14px;padding:20px;width:100%;max-width:560px}
+  .modal h3{margin:0 0 14px;font-size:16px}
+  .row-end{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+  .empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:13px}
+  .banner{border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:12px}
+  .banner.warn{background:var(--warn-soft);border:1px solid #f0e0b0;color:#7a5c00}
+  .banner.info{background:var(--info-soft);border:1px solid #cfe0ee;color:#1d5480}
+  .bar{height:6px;background:var(--bg);border-radius:4px;overflow:hidden;margin-top:4px}
+  .bar span{display:block;height:100%;background:var(--brand)}
+
+  /* 登入畫面 */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-box{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:28px 24px;width:100%;max-width:360px;text-align:center}
+  .login-box .logo{font-size:34px}
+  .login-box h1{font-size:18px;margin:6px 0 4px}
+  .login-box p{font-size:12px;color:var(--muted);margin:0 0 18px}
+  .login-err{background:var(--danger-soft);border:1px solid #f5c2c0;color:var(--danger);
+    border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:12px;display:none;text-align:left}
+  .spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);
+    border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading{text-align:center;padding:50px 20px;color:var(--muted)}
+</style>
+
+<div id="root">
+  <div class="loading">載入中…</div>
+</div>
+
+<script>
+/* =========================================================
+   與伺服器溝通：用 fetch 呼叫 Apps Script（同一套密碼與權限檢查）
+   所有 Supabase 存取都在伺服器端，金鑰不會出現在這個網頁裡
+   ========================================================= */
+// Apps Script 部署網址（換新部署時要改這裡）
+const API_URL = 'https://script.google.com/macros/s/AKfycbzdd4SKwUZUfrx8fTpXB-I2q5DSYv15Uquob7YA87RDMDebtuxa_CcHLeLy-hfK3Ei_xg/exec';
+function call(fn, ...args){
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'admin', fn: fn, args: args })
+  }).then(r => r.json(), () => { throw new Error('網路連線失敗，請稍後再試'); })
+    .then(res => { if (!res.ok) throw new Error(res.error || '操作失敗'); return res.result; });
+}
+let TOKEN = null;
+try { TOKEN = sessionStorage.getItem('adm_token'); } catch(e) {}
+const api = (action, payload) => call('adminCall', TOKEN, action, payload || {});
+
+/* =========================================================
+   共用計算
+   ========================================================= */
+const round1=n=>Math.round(n*10)/10;
+const fmtNum=n=>Number(n).toLocaleString('zh-TW',{maximumFractionDigits:1});
+const fmtMoney=n=>'NT$ '+Math.round(Number(n)).toLocaleString('zh-TW');
+const pct=(a,b)=>b?Math.round(a/b*1000)/10:0;
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function calcMaterials(byItem,recipes){
+  const need={};
+  Object.keys(byItem).forEach(itemId=>{
+    recipes.filter(r=>r.item_id===itemId).forEach(r=>{
+      need[r.material_id]=(need[r.material_id]||0)+Number(r.qty_per_pack)*byItem[itemId];
+    });
+  });
+  return need;
+}
+function packCost(itemId,S){
+  return S.recipes.filter(r=>r.item_id===itemId).reduce((s,r)=>{
+    const m=S.materials.find(x=>x.id===r.material_id);
+    return s+Number(r.qty_per_pack)*(m?Number(m.unit_cost||0):0);
+  },0);
+}
+function parseDate(s){ const [y,m,d]=String(s).slice(0,10).split('-').map(Number); return new Date(y,m-1,d); }
+function dateKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dateText(d){ return (d.getMonth()+1)+'/'+d.getDate()+'（'+['日','一','二','三','四','五','六'][d.getDay()]+'）'; }
+const todayKey=()=>dateKey(new Date());
+
+function productionDay(n,startDate,skipWeekends){
+  const d=new Date(startDate); let c=0;
+  while(true){
+    const wd=d.getDay();
+    if(!skipWeekends||(wd!==0&&wd!==6)){ c++; if(c===n) return new Date(d); }
+    d.setDate(d.getDate()+1);
+  }
+}
+
+/** 批次制生產計畫：同一口味 batch_size 包為一批 */
+function buildPlan(S,groupId){
+  const prod=S.settings.production||{};
+  const perDay=Number(prod.packs_per_day)||10;
+  const batchSize=Math.max(1,Number(prod.batch_size)||5);
+  const batchesPerDay=Math.max(1,Math.floor(perDay/batchSize));
+  const skipWk=prod.skip_weekends!==false;
+  const group=S.groups.find(g=>g.id===groupId);
+  if(!group) return {days:[],flavors:[],readyByOrder:{},batchSize,batchesPerDay,readyDate:()=>'—'};
+  const start=parseDate(group.start_date||todayKey());
+
+  const itemById={}; S.items.forEach(i=>itemById[i.id]=i);
+  const linesByOrder={};
+  S.orderItems.forEach(l=>{(linesByOrder[l.order_id]=linesByOrder[l.order_id]||[]).push(l);});
+  const orders=S.orders.filter(o=>o.group_id===groupId&&o.status!=='cancelled')
+    .sort((a,b)=>(a.order_no||0)-(b.order_no||0));
+
+  const demand={},firstSeq={},alloc={};
+  orders.forEach((o,idx)=>{
+    (linesByOrder[o.id]||[])
+      .filter(l=>itemById[l.item_id]&&itemById[l.item_id].counts_capacity&&l.qty>0)
+      .sort((a,b)=>(itemById[a.item_id].sort_order||0)-(itemById[b.item_id].sort_order||0))
+      .forEach(l=>{
+        demand[l.item_id]=(demand[l.item_id]||0)+l.qty;
+        if(firstSeq[l.item_id]==null) firstSeq[l.item_id]=idx;
+        (alloc[l.item_id]=alloc[l.item_id]||[]).push({orderNo:o.order_no,qty:l.qty});
+      });
+  });
+
+  const flavorIds=Object.keys(demand).sort((a,b)=>firstSeq[a]-firstSeq[b]);
+  const batches=[];
+  flavorIds.forEach(f=>{
+    const n=Math.ceil(demand[f]/batchSize);
+    for(let i=0;i<n;i++) batches.push({itemId:f,batchNo:i});
+  });
+  batches.forEach((b,i)=>{ b.dayIndex=Math.floor(i/batchesPerDay)+1; });
+
+  const batchDay={};
+  batches.forEach(b=>{ batchDay[b.itemId+'#'+b.batchNo]=b.dayIndex; });
+  const readyByOrder={};
+  flavorIds.forEach(f=>{
+    let cum=0;
+    (alloc[f]||[]).forEach(a=>{
+      cum+=a.qty;
+      const di=batchDay[f+'#'+(Math.ceil(cum/batchSize)-1)];
+      if(di!=null) readyByOrder[a.orderNo]=Math.max(readyByOrder[a.orderNo]||0,di);
+    });
+  });
+
+  const producedByDate={};
+  S.prod.forEach(p=>{ const k=String(p.produced_on).slice(0,10);
+    producedByDate[k]=(producedByDate[k]||0)+Number(p.packs); });
+
+  const byDay={};
+  batches.forEach(b=>{ (byDay[b.dayIndex]=byDay[b.dayIndex]||[]).push(b); });
+  const days=Object.keys(byDay).map(Number).sort((a,b)=>a-b).map(di=>{
+    const d=productionDay(di,start,skipWk), k=dateKey(d);
+    const cnt={}; byDay[di].forEach(b=>cnt[b.itemId]=(cnt[b.itemId]||0)+1);
+    const items=Object.keys(cnt).map(id=>({itemId:id,name:(itemById[id]||{}).name||id,
+      batches:cnt[id],packs:cnt[id]*batchSize}));
+    const byItemPacks={}; items.forEach(i=>byItemPacks[i.itemId]=i.packs);
+    return {dayIndex:di,dateKey:k,dateText:dateText(d),items,
+      totalBatches:byDay[di].length,totalPacks:byDay[di].length*batchSize,
+      materials:calcMaterials(byItemPacks,S.recipes),produced:producedByDate[k]||0};
+  });
+
+  const flavors=flavorIds.map(f=>{
+    const b=Math.ceil(demand[f]/batchSize);
+    return {itemId:f,name:(itemById[f]||{}).name||f,demand:demand[f],
+      batches:b,made:b*batchSize,surplus:b*batchSize-demand[f]};
+  });
+
+  return {days,flavors,readyByOrder,batchSize,batchesPerDay,
+    readyDate:di=>di?dateText(productionDay(di,start,skipWk)):'—'};
+}
+
+function calcShortage(S,plan,days){
+  const today=todayKey();
+  const upcoming=plan.days.filter(d=>d.dateKey>=today).slice(0,days||7);
+  const need={};
+  upcoming.forEach(d=>Object.keys(d.materials).forEach(m=>need[m]=(need[m]||0)+d.materials[m]));
+  const stockById={}; S.matStock.forEach(m=>stockById[m.id]=m);
+  return S.materials.map(m=>{
+    const s=stockById[m.id]||{stock:0};
+    const required=need[m.id]||0, have=Number(s.stock)||0;
+    return {id:m.id,name:m.name,unit:m.unit,required,stock:have,
+      shortage:Math.max(0,required-have),safety:Number(m.safety_stock)||0,
+      belowSafety:have<(Number(m.safety_stock)||0)};
+  });
+}
+
+function calcSummary(S,groupId){
+  const orders=S.orders.filter(o=>o.group_id===groupId&&o.status!=='cancelled');
+  const ids={}; orders.forEach(o=>ids[o.id]=true);
+  const lines=S.orderItems.filter(l=>ids[l.order_id]);
+  const itemById={}; S.items.forEach(i=>itemById[i.id]=i);
+
+  const byItem={};
+  lines.forEach(l=>{
+    const it=itemById[l.item_id]; if(!it) return;
+    const r=byItem[l.item_id]=byItem[l.item_id]||{id:l.item_id,name:it.name,unit:it.unit,qty:0,amount:0,cost:0};
+    r.qty+=l.qty; r.amount+=l.qty*Number(it.price);
+    r.cost+=l.qty*(it.counts_capacity?packCost(l.item_id,S):0);
+  });
+  const rows=Object.keys(byItem).map(k=>byItem[k]).sort((a,b)=>b.amount-a.amount);
+
+  const revenue=orders.reduce((s,o)=>s+Number(o.total_amount||0),0);
+  const paidRevenue=orders.filter(o=>o.paid).reduce((s,o)=>s+Number(o.total_amount||0),0);
+  const materialCost=rows.reduce((s,r)=>s+r.cost,0);
+  const expenses=S.expenses.filter(e=>e.group_id===groupId);
+  const otherCost=expenses.reduce((s,e)=>s+Number(e.amount||0),0);
+  const purchaseSpend=(S.movements||[]).filter(m=>m.kind==='purchase'&&m.target==='material')
+    .reduce((s,m)=>{
+      if(m.amount!=null) return s+Number(m.amount);
+      const mat=S.materials.find(x=>x.id===m.ref_id);
+      return s+Number(m.delta)*(mat?Number(mat.unit_cost||0):0);
+    },0);
+
+  return {orders,rows,revenue,paidRevenue,unpaidRevenue:revenue-paidRevenue,
+    materialCost,otherCost,expenses,purchaseSpend,
+    grossProfit:revenue-materialCost-otherCost,
+    totalPacks:orders.reduce((s,o)=>s+Number(o.total_packs||0),0),
+    avgOrder:orders.length?revenue/orders.length:0};
+}
+
+/* =========================================================
+   畫面
+   ========================================================= */
+let S=null,PLAN=null,TAB='dash',GID=null;
+const TABS=[['dash','📊','儀表板'],['plan','🏭','生產計畫'],['stock','📦','庫存'],
+  ['orders','🧾','訂單'],['sales','📈','業績表'],['finance','💰','帳務'],
+  ['recipe','📖','品項與配方'],['groups','🗂','團次管理']];
+
+function toast(msg,isErr){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const el=document.createElement('div');
+  el.className='toast'+(isErr?' err':''); el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),isErr?6000:2600);
+}
+function modal(html){
+  const bg=document.createElement('div');
+  bg.className='modal-bg'; bg.innerHTML='<div class="modal">'+html+'</div>';
+  bg.addEventListener('click',e=>{ if(e.target===bg) bg.remove(); });
+  document.body.appendChild(bg); return bg;
+}
+const closeModal=()=>document.querySelectorAll('.modal-bg').forEach(m=>m.remove());
+
+/* ---------- 登入 ---------- */
+function showLogin(msg){
+  document.getElementById('root').innerHTML=
+    '<div class="login-wrap"><div class="login-box">'+
+      '<div class="logo">🥟</div><h1>欸冷水餃 後台</h1>'+
+      '<p>請輸入管理密碼</p>'+
+      '<div class="login-err" id="loginErr">'+(msg?esc(msg):'')+'</div>'+
+      '<input type="password" id="pw" placeholder="密碼" style="text-align:center;margin-bottom:12px">'+
+      '<button class="btn" id="loginBtn" style="width:100%">登入</button>'+
+    '</div></div>';
+  if(msg) document.getElementById('loginErr').style.display='block';
+  const pw=document.getElementById('pw');
+  const btn=document.getElementById('loginBtn');
+  const submit=async()=>{
+    const v=pw.value;
+    if(!v) return;
+    btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 登入中…';
+    try{
+      const r=await call('adminLogin',v);
+      TOKEN=r.token;
+      try{ sessionStorage.setItem('adm_token',TOKEN); }catch(e){}
+      boot();
+    }catch(e){
+      btn.disabled=false; btn.textContent='登入';
+      const el=document.getElementById('loginErr');
+      el.textContent=e.message; el.style.display='block';
+      pw.value=''; pw.focus();
+    }
+  };
+  btn.addEventListener('click',submit);
+  pw.addEventListener('keydown',e=>{ if(e.key==='Enter') submit(); });
+  pw.focus();
+}
+
+function shell(){
+  document.getElementById('root').innerHTML=
+    '<div class="app"><aside>'+
+      '<div class="brand">🥟 欸冷水餃<small>後台管理系統</small></div>'+
+      '<div class="side-nav" id="nav"></div>'+
+      '<div class="side-foot"><div class="conn"><span class="dot"></span>'+
+      '<span>已連線 Supabase</span></div>'+
+      '<button class="btn plain sm" style="width:100%" onclick="logout()">登出</button></div>'+
+    '</aside><div class="main-col">'+
+      '<div class="topbar"><h1 id="pageTitle">儀表板</h1>'+
+      '<div class="spacer"></div><div id="groupPicker"></div></div>'+
+      '<main id="view"></main></div></div>';
+}
+function logout(){
+  TOKEN=null;
+  try{ sessionStorage.removeItem('adm_token'); }catch(e){}
+  showLogin();
+}
+
+function renderNav(){
+  document.getElementById('nav').innerHTML=TABS.map(t=>
+    '<button class="'+(TAB===t[0]?'active':'')+'" onclick="go(\''+t[0]+'\')">'+
+    '<span class="ico">'+t[1]+'</span><span>'+t[2]+'</span></button>').join('');
+  const t=TABS.filter(t=>t[0]===TAB)[0];
+  document.getElementById('pageTitle').textContent=t?t[2]:'';
+}
+function renderGroupPicker(){
+  const el=document.getElementById('groupPicker');
+  if(!S||!S.groups.length){ el.innerHTML=''; return; }
+  el.innerHTML='<select style="width:auto;min-width:150px;font-size:13px;padding:6px 10px"'+
+    ' onchange="switchGroup(this.value)">'+
+    S.groups.map(g=>'<option value="'+g.id+'" '+(g.id===GID?'selected':'')+'>'+
+      esc(g.name)+(g.status==='open'?'（進行中）':'')+'</option>').join('')+'</select>';
+}
+function switchGroup(id){ GID=Number(id); PLAN=buildPlan(S,GID); render(); }
+function go(tab){ TAB=tab; renderNav(); render(); window.scrollTo(0,0); }
+
+async function reload(){
+  try{
+    S=await call('adminLoad',TOKEN);
+    if(!GID||!S.groups.filter(g=>g.id===GID).length){
+      const open=S.groups.filter(g=>g.status==='open')[0];
+      GID=open?open.id:(S.groups.length?S.groups[S.groups.length-1].id:null);
+    }
+    PLAN=buildPlan(S,GID);
+    render();
+  }catch(e){
+    if(/登入已過期|密碼/.test(e.message)){ logout(); return; }
+    document.getElementById('view').innerHTML=
+      '<div class="card"><div class="banner warn">讀取資料失敗：'+esc(e.message)+'</div>'+
+      '<button class="btn ghost" onclick="reload()">重試</button></div>';
+  }
+}
+function render(){
+  renderNav(); renderGroupPicker();
+  const v=document.getElementById('view');
+  if(!S){ v.innerHTML='<div class="loading">載入中…</div>'; return; }
+  const fn={dash:viewDash,plan:viewPlan,stock:viewStock,orders:viewOrders,
+    sales:viewSales,finance:viewFinance,recipe:viewRecipe,groups:viewGroups}[TAB];
+  v.innerHTML=fn?fn():'';
+}
+
+/* ---------- 儀表板 ---------- */
+function viewDash(){
+  const today=todayKey();
+  const todayPlan=PLAN.days.filter(d=>d.dateKey===today)[0];
+  const upcoming=PLAN.days.filter(d=>d.dateKey>=today);
+  const shortage=calcShortage(S,PLAN,7);
+  const lacking=shortage.filter(s=>s.shortage>0);
+  const low=shortage.filter(s=>s.belowSafety&&s.shortage<=0);
+  const sum=calcSummary(S,GID);
+  const g=S.groups.filter(x=>x.id===GID)[0]||{};
+  const surplus=PLAN.flavors.reduce((s,f)=>s+f.surplus,0);
+
+  let h='<div class="grid c4" style="margin-bottom:14px">'+
+    '<div class="stat"><div class="label">訂單包數</div><div class="value">'+sum.totalPacks+'</div>'+
+      '<div class="foot">上限 '+(g.max_packs||0)+' 包，剩 '+Math.max(0,(g.max_packs||0)-sum.totalPacks)+'</div></div>'+
+    '<div class="stat"><div class="label">營收</div><div class="value">'+fmtMoney(sum.revenue)+'</div>'+
+      '<div class="foot">'+sum.orders.length+' 筆訂單</div></div>'+
+    '<div class="stat"><div class="label">待出貨</div><div class="value">'+
+      sum.orders.filter(o=>o.status!=='delivered').length+'</div><div class="foot">尚未交付</div></div>'+
+    '<div class="stat"><div class="label">缺料品項</div>'+
+      '<div class="value" style="color:'+(lacking.length?'var(--danger)':'var(--ok)')+'">'+lacking.length+'</div>'+
+      '<div class="foot">未來 7 個生產日</div></div></div>';
+
+  h+='<div class="card"><h2>📋 今天要做的量<span class="sub">'+dateText(new Date())+'</span></h2>';
+  if(!todayPlan) h+='<div class="empty">今天沒有排定的製作項目。</div>';
+  else{
+    h+='<div class="scroll"><table><thead><tr><th>口味</th><th class="num">批數</th>'+
+       '<th class="num">包數</th></tr></thead><tbody>';
+    todayPlan.items.forEach(i=>h+='<tr><td>'+esc(i.name)+'</td><td class="num">'+i.batches+
+      ' 批</td><td class="num"><b>'+i.packs+'</b> 包</td></tr>');
+    h+='</tbody><tfoot><tr><td>合計</td><td class="num">'+todayPlan.totalBatches+' 批</td>'+
+       '<td class="num">'+todayPlan.totalPacks+' 包</td></tr></tfoot></table></div>'+
+       '<div style="margin-top:12px" class="inline">'+
+       '<button class="btn" onclick="openProduce(\''+todayPlan.dateKey+'\')">登記今日生產</button>'+
+       '<span style="font-size:12px;color:var(--muted)">登記後自動扣原料、成品入庫</span></div>';
+  }
+  h+='</div>';
+
+  if(surplus>0){
+    const dt=PLAN.flavors.reduce((s,f)=>s+f.demand,0);
+    const mt=PLAN.flavors.reduce((s,f)=>s+f.made,0);
+    h+='<div class="banner info">📦 因為一批固定 '+PLAN.batchSize+' 包，訂單需求 '+dt+
+      ' 包實際要做 <b>'+mt+' 包</b>，多出的 <b>'+surplus+' 包</b>會進成品庫存。</div>';
+  }
+
+  h+='<div class="card"><h2>⚠️ 原料狀況<span class="sub">未來 7 個生產日</span></h2>';
+  if(!lacking.length&&!low.length) h+='<div class="empty">原料充足 👍</div>';
+  else{
+    h+='<div class="scroll"><table><thead><tr><th>原料</th><th class="num">7日需求</th>'+
+       '<th class="num">現有</th><th class="num">缺口</th><th>狀態</th></tr></thead><tbody>';
+    lacking.concat(low).forEach(s=>h+='<tr><td>'+esc(s.name)+'</td>'+
+      '<td class="num">'+fmtNum(s.required)+' '+esc(s.unit)+'</td>'+
+      '<td class="num">'+fmtNum(s.stock)+' '+esc(s.unit)+'</td>'+
+      '<td class="num" style="color:'+(s.shortage>0?'var(--danger)':'inherit')+'">'+
+        (s.shortage>0?fmtNum(s.shortage)+' '+esc(s.unit):'—')+'</td>'+
+      '<td>'+(s.shortage>0?'<span class="pill danger">要補貨</span>'
+        :'<span class="pill warn">低於安全量</span>')+'</td></tr>');
+    h+='</tbody></table></div><div style="margin-top:10px">'+
+       '<button class="btn ghost" onclick="go(\'stock\')">去補貨</button></div>';
+  }
+  h+='</div>';
+
+  h+='<div class="card"><h2>🗓 接下來的安排</h2>';
+  if(!upcoming.length) h+='<div class="empty">目前沒有待生產的批次。</div>';
+  else{
+    h+='<div class="scroll"><table><thead><tr><th>日期</th><th>製作內容</th>'+
+       '<th class="num">合計</th></tr></thead><tbody>';
+    upcoming.slice(0,7).forEach(d=>h+='<tr'+(d.produced>=d.totalPacks?' class="dim"':'')+'>'+
+      '<td><b>'+d.dateText+'</b></td><td>'+
+      d.items.map(i=>esc(i.name)+' <b>'+i.batches+'</b>批').join('、')+'</td>'+
+      '<td class="num">'+d.totalPacks+' 包'+
+      (d.produced>=d.totalPacks?' <span class="pill ok">已完成</span>':'')+'</td></tr>');
+    h+='</tbody></table></div>';
+  }
+  return h+'</div>';
+}
+
+/* ---------- 生產計畫 ---------- */
+function viewPlan(){
+  const today=todayKey();
+  const prod=S.settings.production||{};
+  let h='<div class="banner info">🏭 <b>批次規則</b>：同一口味 <b>'+PLAN.batchSize+
+    ' 包一批</b>，一批是最小製作單位。每天做 '+(prod.packs_per_day||10)+' 包 = <b>'+
+    PLAN.batchesPerDay+' 批</b>'+(prod.skip_weekends!==false?'，跳過週末':'')+'。<br>'+
+    '某口味訂 7 包時會做 2 批共 10 包，多的 3 包自動進成品庫存。</div>';
+
+  if(!PLAN.flavors.length) return h+'<div class="card"><div class="empty">'+
+    '這一團還沒有訂單，所以沒有生產計畫。</div></div>';
+
+  const dt=PLAN.flavors.reduce((s,f)=>s+f.demand,0);
+  const mt=PLAN.flavors.reduce((s,f)=>s+f.made,0);
+
+  h+='<div class="card"><h2>🧮 批次試算<span class="sub">訂單需求 → 實際製作量</span></h2>'+
+     '<div class="scroll"><table><thead><tr><th>口味</th><th class="num">訂單需求</th>'+
+     '<th class="num">批數</th><th class="num">實際做</th><th class="num">多出</th></tr></thead><tbody>';
+  PLAN.flavors.forEach(f=>h+='<tr><td>'+esc(f.name)+'</td><td class="num">'+f.demand+
+    ' 包</td><td class="num">'+f.batches+' 批</td><td class="num"><b>'+f.made+'</b> 包</td>'+
+    '<td class="num">'+(f.surplus>0?'<span class="pill info">+'+f.surplus+'</span>':'—')+'</td></tr>');
+  h+='</tbody><tfoot><tr><td>合計</td><td class="num">'+dt+' 包</td><td class="num">'+
+     PLAN.flavors.reduce((s,f)=>s+f.batches,0)+' 批</td><td class="num">'+mt+' 包</td>'+
+     '<td class="num">'+(mt-dt>0?'+'+(mt-dt):'—')+'</td></tr></tfoot></table></div></div>';
+
+  h+='<div class="card"><h2>🗓 每日製作排程</h2><div class="scroll"><table><thead><tr>'+
+     '<th>日期</th><th>製作內容</th><th class="num">批數</th><th class="num">包數</th><th></th>'+
+     '</tr></thead><tbody>';
+  PLAN.days.forEach(d=>{
+    const done=d.produced>=d.totalPacks;
+    h+='<tr'+(d.dateKey<today||done?' class="dim"':'')+'>'+
+      '<td><b>'+d.dateText+'</b>'+(d.dateKey===today?' <span class="pill ok">今天</span>':'')+'</td>'+
+      '<td>'+d.items.map(i=>esc(i.name)+' <b>'+i.batches+'</b>批 ('+i.packs+'包)').join('<br>')+'</td>'+
+      '<td class="num">'+d.totalBatches+'</td><td class="num">'+d.totalPacks+'</td>'+
+      '<td>'+(done?'<span class="pill ok">已完成</span>'
+        :'<button class="btn sm ghost" onclick="openProduce(\''+d.dateKey+'\')">登記</button>')+'</td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+
+  h+='<div class="card"><h2>🥬 各日原料需求</h2><div class="scroll"><table><thead><tr><th>日期</th>';
+  S.materials.forEach(m=>h+='<th class="num">'+esc(m.name)+'</th>');
+  h+='</tr></thead><tbody>';
+  PLAN.days.filter(d=>d.dateKey>=today).slice(0,10).forEach(d=>{
+    h+='<tr><td>'+d.dateText+'</td>';
+    S.materials.forEach(m=>{ const v=d.materials[m.id]||0;
+      h+='<td class="num">'+(v?fmtNum(v):'—')+'</td>'; });
+    h+='</tr>';
+  });
+  return h+'</tbody></table></div><div style="font-size:12px;color:var(--muted);margin-top:8px">單位：'+
+    S.materials.map(m=>esc(m.name)+' '+esc(m.unit)).join('、')+'</div></div>';
+}
+
+/* ---------- 庫存 ---------- */
+function viewStock(){
+  const shortage=calcShortage(S,PLAN,7);
+  const byId={}; shortage.forEach(s=>byId[s.id]=s);
+  let h='<div class="card"><h2>🥬 原料庫存<span class="sub">'+
+    '「進貨」加入採購量，「盤點」直接更正為實際數量</span></h2>'+
+    '<div class="scroll"><table><thead><tr><th>原料</th><th class="num">現有</th>'+
+    '<th class="num">安全量</th><th class="num">7日需求</th><th>狀態</th><th></th></tr></thead><tbody>';
+  S.matStock.forEach(m=>{
+    const s=byId[m.id]||{required:0,shortage:0}, stock=Number(m.stock)||0;
+    const tag=s.shortage>0?'<span class="pill danger">要補貨</span>'
+      :(stock<Number(m.safety_stock)?'<span class="pill warn">偏低</span>'
+      :'<span class="pill ok">充足</span>');
+    h+='<tr><td>'+esc(m.name)+'</td><td class="num"><b>'+fmtNum(stock)+'</b> '+esc(m.unit)+'</td>'+
+      '<td class="num">'+fmtNum(m.safety_stock)+'</td><td class="num">'+fmtNum(s.required)+'</td>'+
+      '<td>'+tag+'</td><td style="white-space:nowrap">'+
+      '<button class="btn sm" onclick="openStock(\'material\',\''+m.id+'\',\'add\')">進貨</button> '+
+      '<button class="btn sm ghost" onclick="openStock(\'material\',\''+m.id+'\',\'set\')">盤點</button>'+
+      '</td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+
+  const need={};
+  S.orders.filter(o=>o.group_id===GID&&o.status!=='delivered'&&o.status!=='cancelled')
+    .forEach(o=>S.orderItems.filter(l=>l.order_id===o.id)
+      .forEach(l=>need[l.item_id]=(need[l.item_id]||0)+l.qty));
+
+  h+='<div class="card"><h2>🥟 成品庫存<span class="sub">已包好、可以出貨的數量</span></h2>'+
+     '<div class="scroll"><table><thead><tr><th>品項</th><th class="num">現有</th>'+
+     '<th class="num">待出貨需求</th><th>狀態</th><th></th></tr></thead><tbody>';
+  S.finStock.forEach(f=>{
+    const stock=Number(f.stock)||0, n=need[f.id]||0;
+    h+='<tr><td>'+esc(f.name)+'</td><td class="num"><b>'+fmtNum(stock)+'</b> '+esc(f.unit)+'</td>'+
+      '<td class="num">'+n+'</td><td>'+(stock>=n?'<span class="pill ok">足夠</span>'
+      :'<span class="pill warn">差 '+(n-stock)+'</span>')+'</td>'+
+      '<td style="white-space:nowrap">'+
+      '<button class="btn sm" onclick="openStock(\'finished\',\''+f.id+'\',\'add\')">入庫</button> '+
+      '<button class="btn sm ghost" onclick="openStock(\'finished\',\''+f.id+'\',\'set\')">盤點</button>'+
+      '</td></tr>';
+  });
+  return h+'</tbody></table></div></div>';
+}
+
+/* ---------- 訂單 ---------- */
+// 訂單列表「內容」欄用的短名稱；沒列到的品項就用原名去掉 emoji
+const ITEM_SHORT={shrimp_chive:'韭菜蝦',shrimp_cabbage:'高麗菜蝦',pork_chive:'韭菜',
+  pork_cabbage:'高麗菜',pepper_pork:'剝皮',sauce:'辣椒醬'};
+function shortItemName(id,itemById){
+  if(ITEM_SHORT[id]) return ITEM_SHORT[id];
+  const name=(itemById[id]||{name:id}).name;
+  return name.replace(/[\p{Extended_Pictographic}️‍]/gu,'').trim();
+}
+
+function viewOrders(){
+  const itemById={}; S.items.forEach(i=>itemById[i.id]=i);
+  const orders=S.orders.filter(o=>o.group_id===GID);
+  let h='<div class="card"><h2>🧾 訂單列表<span class="sub">共 '+orders.length+' 筆</span>'+
+    '<span class="right"><button class="btn sm" onclick="openNewOrder()">＋ 新增訂單</button></span></h2>';
+  if(!orders.length) return h+'<div class="empty">這一團還沒有訂單。<br>'+
+    '客人從訂購表單下單會自動出現在這裡。</div></div>';
+
+  h+='<div class="scroll"><table><thead><tr><th>#</th><th>客戶</th><th>內容</th>'+
+     '<th class="num">包數</th><th class="num">金額</th><th>可取貨</th><th>收款</th>'+
+     '<th>狀態</th><th></th></tr></thead><tbody>';
+  orders.slice().sort((a,b)=>(b.order_no||0)-(a.order_no||0)).forEach(o=>{
+    const lines=S.orderItems.filter(l=>l.order_id===o.id)
+      .sort((a,b)=>((itemById[a.item_id]||{}).sort_order||0)-((itemById[b.item_id]||{}).sort_order||0));
+    const content=lines.map(l=>esc(shortItemName(l.item_id,itemById))+'×'+l.qty).join('、');
+    const di=PLAN.readyByOrder[o.order_no];
+    const sp={pending:'<span class="pill muted">待處理</span>',
+      producing:'<span class="pill warn">製作中</span>',ready:'<span class="pill warn">可取貨</span>',
+      delivered:'<span class="pill ok">已出貨</span>',
+      cancelled:'<span class="pill danger">已取消</span>'}[o.status]||o.status;
+    h+='<tr'+(o.status==='delivered'?' class="dim"':'')+'>'+
+      '<td><b>#'+o.order_no+'</b></td>'+
+      '<td>'+esc(o.customer_name)+'<div style="font-size:11px;color:var(--muted)">'+
+        esc(o.phone||'')+'</div></td>'+
+      '<td style="font-size:12px;max-width:250px">'+content+'</td>'+
+      '<td class="num">'+o.total_packs+'</td>'+
+      '<td class="num">'+fmtMoney(o.total_amount)+'</td>'+
+      '<td style="font-size:12px">'+(di?PLAN.readyDate(di):'—')+'</td>'+
+      '<td><button class="btn sm '+(o.paid?'plain':'ghost')+'" onclick="togglePaid('+o.id+','+(!o.paid)+')">'+
+        (o.paid?'✓ 已收':'未收')+'</button></td>'+
+      '<td>'+sp+'</td>'+
+      '<td>'+(o.status==='delivered'||o.status==='cancelled'?''
+        :'<button class="btn sm" onclick="doShip('+o.id+')">出貨</button>')+'</td></tr>';
+  });
+  return h+'</tbody></table></div></div>';
+}
+
+/* ---------- 業績表 ---------- */
+function viewSales(){
+  const sum=calcSummary(S,GID);
+  const g=S.groups.filter(x=>x.id===GID)[0]||{};
+  if(!sum.orders.length) return '<div class="card"><div class="empty">'+
+    '這一團還沒有訂單，沒有業績可以統計。</div></div>';
+
+  let h='<div class="grid c4" style="margin-bottom:14px">'+
+    '<div class="stat"><div class="label">營收</div><div class="value">'+fmtMoney(sum.revenue)+'</div>'+
+      '<div class="foot">'+esc(g.name)+'</div></div>'+
+    '<div class="stat"><div class="label">訂單數</div><div class="value">'+sum.orders.length+'</div>'+
+      '<div class="foot">平均 '+fmtMoney(sum.avgOrder)+'／單</div></div>'+
+    '<div class="stat"><div class="label">總包數</div><div class="value">'+sum.totalPacks+'</div>'+
+      '<div class="foot">水餃（不含醬料）</div></div>'+
+    '<div class="stat"><div class="label">毛利</div>'+
+      '<div class="value" style="color:'+(sum.grossProfit>=0?'var(--ok)':'var(--danger)')+'">'+
+      fmtMoney(sum.grossProfit)+'</div><div class="foot">毛利率 '+pct(sum.grossProfit,sum.revenue)+'%</div></div></div>';
+
+  const maxAmt=Math.max.apply(null,sum.rows.map(r=>r.amount));
+  h+='<div class="card"><h2>🏆 品項銷售排行</h2><div class="scroll"><table><thead><tr>'+
+     '<th>品項</th><th class="num">數量</th><th class="num">營收</th><th class="num">占比</th>'+
+     '<th class="num">成本</th><th class="num">毛利</th><th style="width:120px">　</th></tr></thead><tbody>';
+  sum.rows.forEach(r=>{
+    const p=r.amount-r.cost;
+    h+='<tr><td>'+esc(r.name)+'</td><td class="num">'+r.qty+' '+esc(r.unit)+'</td>'+
+      '<td class="num"><b>'+fmtMoney(r.amount)+'</b></td>'+
+      '<td class="num">'+pct(r.amount,sum.revenue)+'%</td>'+
+      '<td class="num">'+(r.cost>0?fmtMoney(r.cost):'—')+'</td>'+
+      '<td class="num" style="color:'+(p>=0?'var(--ok)':'var(--danger)')+'">'+fmtMoney(p)+'</td>'+
+      '<td><div class="bar"><span style="width:'+(maxAmt?r.amount/maxAmt*100:0)+'%"></span></div></td></tr>';
+  });
+  h+='</tbody><tfoot><tr><td>合計</td><td class="num">'+sum.rows.reduce((s,r)=>s+r.qty,0)+'</td>'+
+     '<td class="num">'+fmtMoney(sum.revenue)+'</td><td class="num">100%</td>'+
+     '<td class="num">'+fmtMoney(sum.materialCost)+'</td>'+
+     '<td class="num">'+fmtMoney(sum.revenue-sum.materialCost)+'</td><td></td></tr></tfoot>'+
+     '</table></div><div style="font-size:12px;color:var(--muted);margin-top:8px">'+
+     '成本是依「配方 × 原料單價」算出的理論原料成本，不含包材與人工。</div></div>';
+
+  h+='<div class="card"><h2>👥 客戶訂購明細</h2><div class="scroll"><table><thead><tr>'+
+     '<th>#</th><th>客戶</th><th class="num">包數</th><th class="num">金額</th>'+
+     '<th>收款</th><th>狀態</th></tr></thead><tbody>';
+  sum.orders.slice().sort((a,b)=>b.total_amount-a.total_amount).forEach(o=>
+    h+='<tr><td>#'+o.order_no+'</td><td>'+esc(o.customer_name)+'</td>'+
+      '<td class="num">'+o.total_packs+'</td><td class="num">'+fmtMoney(o.total_amount)+'</td>'+
+      '<td>'+(o.paid?'<span class="pill ok">已收</span>':'<span class="pill danger">未收</span>')+'</td>'+
+      '<td>'+(o.status==='delivered'?'<span class="pill ok">已出貨</span>'
+        :'<span class="pill muted">未出貨</span>')+'</td></tr>');
+  return h+'</tbody></table></div></div>';
+}
+
+/* ---------- 帳務 ---------- */
+function viewFinance(){
+  const sum=calcSummary(S,GID);
+  const g=S.groups.filter(x=>x.id===GID)[0]||{};
+  const net=sum.revenue-sum.purchaseSpend-sum.otherCost;
+
+  let h='<div class="grid c4" style="margin-bottom:14px">'+
+    '<div class="stat"><div class="label">應收總額</div><div class="value">'+fmtMoney(sum.revenue)+'</div>'+
+      '<div class="foot">'+esc(g.name)+'</div></div>'+
+    '<div class="stat"><div class="label">已收款</div>'+
+      '<div class="value" style="color:var(--ok)">'+fmtMoney(sum.paidRevenue)+'</div>'+
+      '<div class="foot">'+pct(sum.paidRevenue,sum.revenue)+'%</div></div>'+
+    '<div class="stat"><div class="label">未收款</div>'+
+      '<div class="value" style="color:'+(sum.unpaidRevenue>0?'var(--danger)':'var(--muted)')+'">'+
+      fmtMoney(sum.unpaidRevenue)+'</div><div class="foot">'+
+      sum.orders.filter(o=>!o.paid).length+' 筆待收</div></div>'+
+    '<div class="stat"><div class="label">淨利（實支）</div>'+
+      '<div class="value" style="color:'+(net>=0?'var(--ok)':'var(--danger)')+'">'+fmtMoney(net)+'</div>'+
+      '<div class="foot">營收 − 實際採購 − 其他支出</div></div></div>';
+
+  h+='<div class="card"><h2>💵 損益</h2><div class="scroll"><table><tbody>'+
+    '<tr><td>營業收入</td><td class="num"><b>'+fmtMoney(sum.revenue)+'</b></td></tr>'+
+    '<tr class="dim"><td style="padding-left:24px">已收款</td><td class="num">'+fmtMoney(sum.paidRevenue)+'</td></tr>'+
+    '<tr class="dim"><td style="padding-left:24px">未收款</td><td class="num">'+fmtMoney(sum.unpaidRevenue)+'</td></tr>'+
+    '<tr><td>理論原料成本<span style="font-size:11px;color:var(--muted)">（依配方換算）</span></td>'+
+      '<td class="num">−'+fmtMoney(sum.materialCost)+'</td></tr>'+
+    '<tr><td>其他支出</td><td class="num">−'+fmtMoney(sum.otherCost)+'</td></tr>'+
+    '<tr><td><b>毛利</b></td><td class="num" style="color:'+
+      (sum.grossProfit>=0?'var(--ok)':'var(--danger)')+'"><b>'+fmtMoney(sum.grossProfit)+
+      '</b>（'+pct(sum.grossProfit,sum.revenue)+'%）</td></tr></tbody></table></div>'+
+    '<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border)">'+
+    '<div style="font-size:13px;font-weight:600;margin-bottom:6px">實際現金流</div>'+
+    '<div class="scroll"><table><tbody>'+
+      '<tr><td>營業收入</td><td class="num">'+fmtMoney(sum.revenue)+'</td></tr>'+
+      '<tr><td>實際原料採購支出</td><td class="num">−'+fmtMoney(sum.purchaseSpend)+'</td></tr>'+
+      '<tr><td>其他支出</td><td class="num">−'+fmtMoney(sum.otherCost)+'</td></tr>'+
+      '<tr><td><b>淨利</b></td><td class="num" style="color:'+(net>=0?'var(--ok)':'var(--danger)')+
+        '"><b>'+fmtMoney(net)+'</b></td></tr></tbody></table></div>'+
+    '<div style="font-size:12px;color:var(--muted);margin-top:8px">'+
+    '「理論成本」只算這一團訂單用掉的量；「實際採購」是所有進貨支出，'+
+    '包含還沒用完的庫存，所以兩個數字通常不一樣。</div></div></div>';
+
+  const unpaid=sum.orders.filter(o=>!o.paid);
+  h+='<div class="card"><h2>🧾 未收款清單<span class="sub">'+unpaid.length+' 筆</span></h2>';
+  if(!unpaid.length) h+='<div class="empty">全部都收到款了 👍</div>';
+  else{
+    h+='<div class="scroll"><table><thead><tr><th>#</th><th>客戶</th><th>電話</th>'+
+       '<th class="num">金額</th><th></th></tr></thead><tbody>';
+    unpaid.forEach(o=>h+='<tr><td>#'+o.order_no+'</td><td>'+esc(o.customer_name)+'</td>'+
+      '<td>'+esc(o.phone||'')+'</td><td class="num">'+fmtMoney(o.total_amount)+'</td>'+
+      '<td><button class="btn sm" onclick="togglePaid('+o.id+',true)">標記已收</button></td></tr>');
+    h+='</tbody></table></div>';
+  }
+  h+='</div>';
+
+  h+='<div class="card"><h2>💳 其他支出<span class="right">'+
+     '<button class="btn sm" onclick="openExpense()">＋ 新增支出</button></span></h2>';
+  if(!sum.expenses.length) h+='<div class="empty">還沒有登記其他支出。</div>';
+  else{
+    h+='<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>備註</th>'+
+       '<th class="num">金額</th><th></th></tr></thead><tbody>';
+    sum.expenses.slice().sort((a,b)=>String(b.spent_on).localeCompare(String(a.spent_on)))
+      .forEach(e=>h+='<tr><td>'+esc(String(e.spent_on).slice(0,10))+'</td>'+
+        '<td>'+esc(e.category)+'</td><td style="font-size:12px;color:var(--muted)">'+
+        esc(e.note||'')+'</td><td class="num">'+fmtMoney(e.amount)+'</td>'+
+        '<td><button class="btn sm plain" onclick="delExpense('+e.id+')">刪除</button></td></tr>');
+    h+='</tbody><tfoot><tr><td colspan="3">合計</td><td class="num">'+
+       fmtMoney(sum.otherCost)+'</td><td></td></tr></tfoot></table></div>';
+  }
+  return h+'</div>';
+}
+
+/* ---------- 品項與配方 ---------- */
+function viewRecipe(){
+  let h='<div class="banner warn">⚠️ 配方與原料單價如果不是實際數字，'+
+    '扣料、缺料警示、成本毛利都會不準。</div>';
+
+  h+='<div class="card"><h2>🥟 販售品項<span class="right">'+
+     '<button class="btn sm" onclick="openItem()">＋ 新增品項</button></span></h2>'+
+     '<div class="scroll"><table><thead><tr><th>品項</th><th>單位</th><th class="num">售價</th>'+
+     '<th class="num">每包成本</th><th class="num">毛利率</th><th>進生產排程</th><th></th></tr></thead><tbody>';
+  S.items.filter(i=>i.active).forEach(it=>{
+    const c=it.counts_capacity?packCost(it.id,S):0;
+    h+='<tr><td>'+esc(it.name)+'</td><td>'+esc(it.unit)+'</td>'+
+      '<td class="num">'+fmtMoney(it.price)+'</td>'+
+      '<td class="num">'+(c>0?fmtMoney(c):'—')+'</td>'+
+      '<td class="num">'+(c>0?pct(it.price-c,it.price)+'%':'—')+'</td>'+
+      '<td>'+(it.counts_capacity?'<span class="pill ok">是</span>'
+        :'<span class="pill muted">外購</span>')+'</td>'+
+      '<td style="white-space:nowrap">'+
+      '<button class="btn sm ghost" onclick="openItem(\''+it.id+'\')">編輯</button> '+
+      '<button class="btn sm plain" onclick="delItem(\''+it.id+'\')">刪除</button></td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+
+  h+='<div class="card"><h2>🥬 原料<span class="right">'+
+     '<button class="btn sm" onclick="openMaterial()">＋ 新增原料</button></span></h2>'+
+     '<div class="scroll"><table><thead><tr><th>原料</th><th>單位</th><th class="num">單價</th>'+
+     '<th class="num">安全庫存</th><th></th></tr></thead><tbody>';
+  S.materials.forEach(m=>h+='<tr><td>'+esc(m.name)+'</td><td>'+esc(m.unit)+'</td>'+
+    '<td class="num">'+Number(m.unit_cost||0).toFixed(2)+' 元/'+esc(m.unit)+'</td>'+
+    '<td class="num">'+fmtNum(m.safety_stock)+'</td>'+
+    '<td style="white-space:nowrap">'+
+    '<button class="btn sm ghost" onclick="openMaterial(\''+m.id+'\')">編輯</button> '+
+    '<button class="btn sm plain" onclick="delMaterial(\''+m.id+'\')">刪除</button></td></tr>');
+  h+='</tbody></table></div></div>';
+
+  const prodItems=S.items.filter(i=>i.active&&i.counts_capacity);
+  h+='<div class="card"><h2>📖 配方<span class="sub">每「一包」需要的原料，改完立即生效</span></h2>';
+  if(!prodItems.length||!S.materials.length) h+='<div class="empty">請先新增品項與原料。</div>';
+  else{
+    h+='<div class="scroll"><table><thead><tr><th style="min-width:150px">品項</th>';
+    S.materials.forEach(m=>h+='<th class="num">'+esc(m.name)+
+      '<div style="font-weight:400">('+esc(m.unit)+')</div></th>');
+    h+='</tr></thead><tbody>';
+    prodItems.forEach(it=>{
+      h+='<tr><td>'+esc(it.name)+'</td>';
+      S.materials.forEach(m=>{
+        const r=S.recipes.filter(x=>x.item_id===it.id&&x.material_id===m.id)[0];
+        h+='<td class="num"><input class="qty" type="number" min="0" step="1" value="'+
+          (r?Number(r.qty_per_pack):0)+'" onchange="saveRecipe(\''+it.id+'\',\''+m.id+'\',this.value)"></td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='</div><div class="card"><h2>🔧 資料</h2>'+
+     '<button class="btn ghost" onclick="reload()">重新整理</button></div>';
+  return h;
+}
+
+/* ---------- 團次 ---------- */
+function viewGroups(){
+  let h='<div class="card"><h2>🗂 團次<span class="right">'+
+    '<button class="btn sm" onclick="openGroup()">＋ 開新團</button></span></h2>'+
+    '<div class="scroll"><table><thead><tr><th>團名</th><th>開始製作日</th><th class="num">上限</th>'+
+    '<th class="num">訂單</th><th class="num">包數</th><th class="num">營收</th>'+
+    '<th>狀態</th><th></th></tr></thead><tbody>';
+  S.groups.forEach(g=>{
+    const s=calcSummary(S,g.id);
+    h+='<tr'+(g.id===GID?' style="background:var(--brand-soft)"':'')+'>'+
+      '<td><b>'+esc(g.name)+'</b></td><td>'+esc(String(g.start_date||'—').slice(0,10))+'</td>'+
+      '<td class="num">'+g.max_packs+'</td><td class="num">'+s.orders.length+'</td>'+
+      '<td class="num">'+s.totalPacks+'</td><td class="num">'+fmtMoney(s.revenue)+'</td>'+
+      '<td>'+(g.status==='open'?'<span class="pill ok">進行中</span>'
+        :'<span class="pill muted">已結團</span>')+'</td>'+
+      '<td style="white-space:nowrap">'+
+      '<button class="btn sm ghost" onclick="openGroup('+g.id+')">編輯</button> '+
+      (g.status==='open'?'<button class="btn sm plain" onclick="closeGroup('+g.id+')">結團</button>':'')+
+      '</td></tr>';
+  });
+  h+='</tbody></table></div><div style="font-size:12px;color:var(--muted);margin-top:8px">'+
+     '每一團的訂單編號、業績、帳務都是分開計算的。</div></div>';
+
+  const prod=S.settings.production||{};
+  h+='<div class="card"><h2>⚙️ 生產設定</h2><div class="grid c3">'+
+    '<div><div style="font-size:12px;color:var(--muted)">每日產能</div>'+
+      '<div style="font-size:20px;font-weight:700">'+(prod.packs_per_day||10)+' 包／天</div></div>'+
+    '<div><div style="font-size:12px;color:var(--muted)">一批幾包</div>'+
+      '<div style="font-size:20px;font-weight:700">'+(prod.batch_size||5)+' 包／批</div></div>'+
+    '<div><div style="font-size:12px;color:var(--muted)">週末</div>'+
+      '<div style="font-size:20px;font-weight:700">'+
+      (prod.skip_weekends!==false?'不生產':'照做')+'</div></div></div>'+
+    '<div style="font-size:12px;color:var(--muted);margin-top:10px">'+
+    '到 Supabase 的 settings 資料表修改 production 這一列。</div></div>';
+  return h;
+}
+
+/* =========================================================
+   互動
+   ========================================================= */
+async function busy(btnSel, fn){
+  const btn=document.querySelector(btnSel);
+  const old=btn?btn.innerHTML:'';
+  if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 處理中…'; }
+  try{ await fn(); }
+  finally{ if(btn){ btn.disabled=false; btn.innerHTML=old; } }
+}
+
+function openProduce(dk){
+  const day=PLAN.days.filter(d=>d.dateKey===dk)[0]; if(!day) return;
+  const rows=day.items.map(i=>'<tr><td>'+esc(i.name)+'</td>'+
+    '<td class="num" style="color:var(--muted)">'+i.batches+' 批</td>'+
+    '<td class="num"><input class="qty" type="number" min="0" step="'+PLAN.batchSize+
+    '" value="'+i.packs+'" data-id="'+i.itemId+'"></td></tr>').join('');
+  const need=Object.keys(day.materials).map(mid=>{
+    const m=S.materials.filter(x=>x.id===mid)[0];
+    return esc(m.name)+' '+fmtNum(day.materials[mid])+esc(m.unit);
+  }).join('、');
+  modal('<h3>登記生產 — '+day.dateText+'</h3>'+
+    '<div class="scroll"><table><thead><tr><th>口味</th><th class="num">計畫</th>'+
+    '<th class="num">實際做了（包）</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<div style="font-size:12px;color:var(--muted);margin-top:10px">依計畫將耗用：'+need+
+    '<br>送出後自動扣原料、成品入庫。</div>'+
+    '<div class="row-end"><button class="btn ghost" onclick="closeModal()">取消</button>'+
+    '<button class="btn" id="doProduceBtn" onclick="doProduce(\''+dk+'\')">確認登記</button></div>');
+}
+async function doProduce(dk){
+  const entries=[];
+  document.querySelectorAll('.modal input[data-id]').forEach(i=>{
+    const p=Math.max(0,Math.floor(Number(i.value)||0));
+    if(p>0) entries.push({item_id:i.dataset.id,packs:p});
+  });
+  if(!entries.length){ toast('請至少填一個大於 0 的數量',true); return; }
+  await busy('#doProduceBtn', async()=>{
+    try{ await api('recordProduction',{dateKey:dk,entries:entries});
+      closeModal(); toast('已登記生產，原料已扣除、成品已入庫'); await reload();
+    }catch(e){ toast(e.message,true); }
+  });
+}
+
+function openStock(target,id,mode){
+  const list=target==='material'?S.matStock:S.finStock;
+  const row=list.filter(x=>x.id===id)[0];
+  const title=target==='material'?(mode==='add'?'原料進貨':'原料盤點')
+    :(mode==='add'?'成品入庫':'成品盤點');
+  modal('<h3>'+title+' — '+esc(row.name)+'</h3>'+
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:12px">目前庫存：'+
+    '<b style="color:var(--text)">'+fmtNum(row.stock)+' '+esc(row.unit)+'</b></div>'+
+    '<label class="field"><span>'+(mode==='add'?'這次增加的數量'
+      :'實際盤點數量（直接更正為這個數字）')+'（'+esc(row.unit)+'）</span>'+
+    '<input type="number" id="stockQty" step="1" min="0"></label>'+
+    (mode==='add'&&target==='material'
+      ?'<label class="field"><span>這次進貨花了多少錢（選填，帳務會用到）</span>'+
+       '<input type="number" id="stockAmt" step="1" min="0"></label>':'')+
+    '<label class="field"><span>備註（選填）</span><input type="text" id="stockNote"></label>'+
+    '<div class="row-end"><button class="btn ghost" onclick="closeModal()">取消</button>'+
+    '<button class="btn" id="doStockBtn" onclick="doStock(\''+target+'\',\''+id+'\',\''+mode+'\')">確認</button></div>');
+  setTimeout(()=>{const el=document.getElementById('stockQty'); if(el) el.focus();},50);
+}
+async function doStock(target,id,mode){
+  const qty=Number(document.getElementById('stockQty').value);
+  const note=document.getElementById('stockNote').value.trim();
+  const amtEl=document.getElementById('stockAmt');
+  const amt=amtEl&&amtEl.value!==''?Number(amtEl.value):null;
+  if(!isFinite(qty)||qty<0){ toast('請輸入有效的數量',true); return; }
+  const list=target==='material'?S.matStock:S.finStock;
+  const row=list.filter(x=>x.id===id)[0];
+  const delta=mode==='set'?(qty-(Number(row.stock)||0)):qty;
+  if(delta===0){ closeModal(); toast('數量沒有變化'); return; }
+  await busy('#doStockBtn', async()=>{
+    try{
+      await api('addMovement',{kind:mode==='set'?'adjust':'purchase',target:target,refId:id,
+        delta:delta,note:note||(mode==='set'?'盤點':'進貨'),amount:mode==='add'?amt:null});
+      closeModal();
+      toast(mode==='set'?'已更正為 '+fmtNum(qty)+' '+row.unit:'已增加 '+fmtNum(qty)+' '+row.unit);
+      await reload();
+    }catch(e){ toast(e.message,true); }
+  });
+}
+
+async function doShip(orderId){
+  const o=S.orders.filter(x=>x.id===orderId)[0];
+  if(!confirm('確定要為訂單 #'+o.order_no+'（'+o.customer_name+'）出貨嗎？\n這會扣掉對應的成品庫存。')) return;
+  try{ await api('shipOrder',{orderId:orderId}); toast('訂單 #'+o.order_no+' 已出貨'); await reload(); }
+  catch(e){ toast(e.message,true); }
+}
+async function togglePaid(orderId,paid){
+  try{ await api('setPaid',{orderId:orderId,paid:paid});
+    toast(paid?'已標記為收款':'已改為未收款'); await reload(); }
+  catch(e){ toast(e.message,true); }
+}
+
+function openNewOrder(){
+  const rows=S.items.filter(i=>i.active).map(it=>'<tr><td>'+esc(it.name)+
+    '<div style="font-size:11px;color:var(--muted)">'+fmtMoney(it.price)+'/'+esc(it.unit)+'</div></td>'+
+    '<td class="num"><input class="qty" type="number" min="0" step="1" value="0" data-item="'+
+    it.id+'" oninput="calcNewTotal()"></td></tr>').join('');
+  modal('<h3>新增訂單</h3><div class="grid c2">'+
+    '<label class="field"><span>客戶姓名 *</span><input type="text" id="noName"></label>'+
+    '<label class="field"><span>手機號碼</span><input type="tel" id="noPhone"></label>'+
+    '<label class="field"><span>Line ID</span><input type="text" id="noLine"></label>'+
+    '<label class="field"><span>Gmail</span><input type="email" id="noEmail"></label></div>'+
+    '<label class="field"><span>取貨地點 / 宅配地址</span><input type="text" id="noLoc"></label>'+
+    '<div class="scroll" style="margin:6px 0 4px"><table><thead><tr><th>品項</th>'+
+    '<th class="num">數量</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<div style="text-align:right;font-weight:700;font-size:16px" id="noTotal">NT$ 0</div>'+
+    '<div class="row-end"><button class="btn ghost" onclick="closeModal()">取消</button>'+
+    '<button class="btn" id="doOrderBtn" onclick="doNewOrder()">建立訂單</button></div>');
+}
+function calcNewTotal(){
+  let t=0;
+  document.querySelectorAll('.modal input[data-item]').forEach(i=>{
+    const it=S.items.filter(x=>x.id===i.dataset.item)[0];
+    t+=Math.max(0,Math.floor(Number(i.value)||0))*it.price;
+  });
+  document.getElementById('noTotal').textContent=fmtMoney(t);
+}
+async function doNewOrder(){
+  const name=document.getElementById('noName').value.trim();
+  if(!name){ toast('請填寫客戶姓名',true); return; }
+  const items={}; let any=false;
+  document.querySelectorAll('.modal input[data-item]').forEach(i=>{
+    const v=Math.max(0,Math.floor(Number(i.value)||0));
+    items[i.dataset.item]=v; if(v>0) any=true;
+  });
+  if(!any){ toast('請至少填一個品項數量',true); return; }
+  await busy('#doOrderBtn', async()=>{
+    try{
+      await api('addOrder',{groupId:GID,name:name,
+        phone:document.getElementById('noPhone').value.trim(),
+        line:document.getElementById('noLine').value.trim(),
+        email:document.getElementById('noEmail').value.trim(),
+        loc:document.getElementById('noLoc').value.trim(),addr:'',items:items});
+      closeModal(); toast('訂單已建立'); await reload();
+    }catch(e){ toast(e.message,true); }
+  });
+}
+
+function openItem(id){
+  const it=id?S.items.filter(x=>x.id===id)[0]:null;
+  modal('<h3>'+(it?'編輯品項':'新增品項')+'</h3>'+
+    '<label class="field"><span>品項名稱 *</span><input type="text" id="itName" value="'+
+      esc(it?it.name:'')+'" placeholder="例如：🥟 玉米豬肉水餃"></label>'+
+    '<div class="grid c3">'+
+    '<label class="field"><span>單位</span><input type="text" id="itUnit" value="'+
+      esc(it?it.unit:'包')+'"></label>'+
+    '<label class="field"><span>規格</span><input type="text" id="itSize" value="'+
+      esc(it&&it.size?it.size:'')+'" placeholder="30顆/包"></label>'+
+    '<label class="field"><span>售價 *</span><input type="number" id="itPrice" min="0" step="1" value="'+
+      (it?it.price:'')+'"></label></div>'+
+    '<label class="field"><span>要進生產排程嗎？</span><select id="itCap">'+
+      '<option value="1" '+(!it||it.counts_capacity?'selected':'')+'>要（自己包的，佔產能）</option>'+
+      '<option value="0" '+(it&&!it.counts_capacity?'selected':'')+'>不要（外購商品，例如醬料）</option>'+
+      '</select></label>'+
+    '<div class="row-end"><button class="btn ghost" onclick="closeModal()">取消</button>'+
+    '<button class="btn" id="doItemBtn" onclick="doSaveItem('+(id?'\''+id+'\'':'null')+')">儲存</button></div>');
+}
+async function doSaveItem(id){
+  const name=document.getElementById('itName').value.trim();
+  const price=Number(document.getElementById('itPrice').value);
+  if(!name){ toast('請填品項名稱',true); return; }
+  if(!isFinite(price)||price<0){ toast('請填有效的售價',true); return; }
+  const isNew=!id;
+  const item={id:id||('item_'+Date.now().toString(36)),name:name,
+    unit:document.getElementById('itUnit').value.trim()||'包',
+    size:document.getElementById('itSize').value.trim()||null,price:price,
+    counts_capacity:document.getElementById('itCap').value==='1',
+    sort_order:isNew?(Math.max.apply(null,[0].concat(S.items.map(i=>i.sort_order||0)))+1)
+      :(S.items.filter(x=>x.id===id)[0].sort_order||0),
+    active:true};
+  await busy('#doItemBtn', async()=>{
+    try{ await api('saveItem',{item:item,isNew:isNew}); closeModal();
+      toast(isNew?'品項已新增':'品項已更新'); await reload();
+    }catch(e){ toast(e.message,true); }
+  });
+}
+async function delItem(id){
+  const it=S.items.filter(x=>x.id===id)[0];
+  if(!confirm('確定要刪除「'+it.name+'」嗎？\n已經有這個品項的舊訂單不會受影響。')) return;
+  try{ await api('removeItem',{itemId:id}); toast('品項已刪除'); await reload(); }
+  catch(e){ toast(e.message,true); }
+}
+
+function openMaterial(id){
+  const m=id?S.materials.filter(x=>x.id===id)[0]:null;
+  modal('<h3>'+(m?'編輯原料':'新增原料')+'</h3>'+
+    '<label class="field"><span>原料名稱 *</span><input type="text" id="mName" value="'+
+      esc(m?m.name:'')+'" placeholder="例如：玉米粒"></label>'+
+    '<div class="grid c3">'+
+    '<label class="field"><span>單位 *</span><input type="text" id="mUnit" value="'+
+      esc(m?m.unit:'g')+'" placeholder="g / 張 / 顆"></label>'+
+    '<label class="field"><span>單價（每 1 單位）</span><input type="number" id="mCost" min="0" step="0.01" value="'+
+      (m?Number(m.unit_cost||0):0)+'"></label>'+
+    '<label class="field"><span>安全庫存</span><input type="number" id="mSafety" min="0" step="1" value="'+
+      (m?Number(m.safety_stock||0):0)+'"></label></div>'+
+    '<div style="font-size:12px;color:var(--muted)">單價是「每 1 個單位」的成本。'+
+      '例如豬絞肉 1kg 280 元、單位是 g，就填 0.28。</div>'+
+    '<div class="row-end"><button class="btn ghost" onclick="closeModal()">取消</button>'+
+    '<button class="btn" id="doMatBtn" onclick="doSaveMaterial('+(id?'\''+id+'\'':'null')+')">儲存</button></div>');
+}
+async function doSaveMaterial(id){
+  const name=document.getElementById('mName').value.trim();
+  const unit=document.getElementById('mUnit').value.trim();
+  if(!name||!unit){ toast('名稱和單位都要填',true); return; }
+  const isNew=!id;
+  const mat={id:id||('mat_'+Date.now().toString(36)),name:name,unit:unit,
+    unit_cost:Number(document.getElementById('mCost').value)||0,
+    safety_stock:Number(document.getElementById('mSafety').value)||0,
+    sort_order:isNew?(Math.max.apply(null,[0].concat(S.materials.map(m=>m.sort_order||0)))+1)
+      :(S.materials.filter(x=>x.id===id)[0].sort_order||0)};
+  await busy('#doMatBtn', async()=>{
+    try{ await api('saveMaterial',{material:mat,isNew:isNew}); closeModal();
+      toast(isNew?'原料已新增':'原料已更新'); await reload();
+    }catch(e){ toast(e.message,true); }
+  });
+}
+async function delMaterial(id){
+  const m=S.materials.filter(x=>x.id===id)[0];
+  const used=S.recipes.filter(r=>r.material_id===id).length;
+  if(!confirm('確定要刪除「'+m.name+'」嗎？'+(used?'\n有 '+used+' 個配方用到它，會一併移除。':''))) return;
+  try{ await api('removeMaterial',{matId:id}); toast('原料已刪除'); await reload(); }
+  catch(e){ toast(e.message,true); }
+}
+
+async function saveRecipe(itemId,materialId,val){
+  const qty=Math.max(0,Number(val)||0);
+  try{ await api('saveRecipe',{itemId:itemId,materialId:materialId,qty:qty});
+    toast('配方已更新');
+    S=await call('adminLoad',TOKEN); PLAN=buildPlan(S,GID);
+  }catch(e){ toast(e.message,true); }
+}
+
+function openGroup(id){
+  const g=id?S.groups.filter(x=>x.id===id)[0]:null;
+  modal('<h3>'+(g?'編輯團次':'開新團')+'</h3>'+
+    '<label class="field"><span>團名 *</span><input type="text" id="gName" value="'+
+      esc(g?g.name:'')+'" placeholder="例如：第三團"></label><div class="grid c2">'+
+    '<label class="field"><span>開始製作日 *</span><input type="date" id="gStart" value="'+
+      esc(g&&g.start_date?String(g.start_date).slice(0,10):'')+'"></label>'+
+    '<label class="field"><span>本團上限（包）</span><input type="number" id="gMax" min="0" step="10" value="'+
+      (g?g.max_packs:200)+'"></label></div>'+
+    (!g?'<div style="font-size:12px;color:var(--muted)">開新團後，舊團會自動結團，'+
+      '新訂單編號從 #1 重新開始。</div>':'')+
+    '<div class="row-end"><button class="btn ghost" onclick="closeModal()">取消</button>'+
+    '<button class="btn" id="doGroupBtn" onclick="doSaveGroup('+(id?id:'null')+')">儲存</button></div>');
+}
+async function doSaveGroup(id){
+  const name=document.getElementById('gName').value.trim();
+  const start=document.getElementById('gStart').value;
+  if(!name){ toast('請填團名',true); return; }
+  if(!start){ toast('請選開始製作日',true); return; }
+  const payload={name:name,start_date:start,
+    max_packs:Number(document.getElementById('gMax').value)||200};
+  await busy('#doGroupBtn', async()=>{
+    try{
+      if(id){ await api('saveGroup',{group:Object.assign({id:id},payload),isNew:false});
+        toast('團次已更新'); }
+      else{
+        const open=S.groups.filter(g=>g.status==='open');
+        for(let i=0;i<open.length;i++)
+          await api('saveGroup',{group:{id:open[i].id,status:'closed'},isNew:false});
+        const r=await api('saveGroup',{group:Object.assign({status:'open'},payload),isNew:true});
+        if(r&&r.group) GID=r.group.id;
+        toast('新團已開始');
+      }
+      closeModal(); await reload();
+    }catch(e){ toast(e.message,true); }
+  });
+}
+async function closeGroup(id){
+  const g=S.groups.filter(x=>x.id===id)[0];
+  if(!confirm('確定要把「'+g.name+'」結團嗎？\n結團後這一團就不再接新訂單，業績與帳務可以繼續查看。')) return;
+  try{ await api('saveGroup',{group:{id:id,status:'closed'},isNew:false});
+    toast('已結團'); await reload(); }
+  catch(e){ toast(e.message,true); }
+}
+
+function openExpense(){
+  modal('<h3>新增支出</h3><div class="grid c2">'+
+    '<label class="field"><span>日期 *</span><input type="date" id="exDate" value="'+todayKey()+'"></label>'+
+    '<label class="field"><span>金額 *</span><input type="number" id="exAmt" min="0" step="1"></label></div>'+
+    '<label class="field"><span>類別 *</span><input type="text" id="exCat" list="exCats" '+
+      'placeholder="包材 / 瓦斯 / 運費 / 雜支">'+
+      '<datalist id="exCats"><option>包材</option><option>瓦斯</option><option>運費</option>'+
+      '<option>水電</option><option>雜支</option></datalist></label>'+
+    '<label class="field"><span>備註</span><input type="text" id="exNote"></label>'+
+    '<div class="row-end"><button class="btn ghost" onclick="closeModal()">取消</button>'+
+    '<button class="btn" id="doExBtn" onclick="doAddExpense()">新增</button></div>');
+}
+async function doAddExpense(){
+  const amount=Number(document.getElementById('exAmt').value);
+  const category=document.getElementById('exCat').value.trim();
+  if(!isFinite(amount)||amount<=0){ toast('請填有效的金額',true); return; }
+  if(!category){ toast('請填類別',true); return; }
+  await busy('#doExBtn', async()=>{
+    try{
+      await api('addExpense',{expense:{group_id:GID,
+        spent_on:document.getElementById('exDate').value||todayKey(),
+        category:category,amount:amount,
+        note:document.getElementById('exNote').value.trim()||null}});
+      closeModal(); toast('支出已新增'); await reload();
+    }catch(e){ toast(e.message,true); }
+  });
+}
+async function delExpense(id){
+  if(!confirm('確定要刪除這筆支出嗎？')) return;
+  try{ await api('removeExpense',{id:id}); toast('已刪除'); await reload(); }
+  catch(e){ toast(e.message,true); }
+}
+
+/* =========================================================
+   啟動
+   ========================================================= */
+async function boot(){
+  shell();
+  await reload();
+}
+(async function init(){
+  try{
+    const st=await call('adminStatus');
+    if(!st.passwordSet){
+      document.getElementById('root').innerHTML=
+        '<div class="login-wrap"><div class="login-box"><div class="logo">🔑</div>'+
+        '<h1>尚未設定密碼</h1><p style="margin-bottom:0">'+
+        '請到試算表選單<br><b>🥟 訂單管理 → 🔐 後台網頁 → 🔑 設定後台密碼</b><br>'+
+        '設定後重新整理這個頁面。</p></div></div>';
+      return;
+    }
+    if(TOKEN){
+      try{ await call('adminLoad',TOKEN); boot(); return; }
+      catch(e){ TOKEN=null; try{ sessionStorage.removeItem('adm_token'); }catch(e2){} }
+    }
+    showLogin();
+  }catch(e){
+    document.getElementById('root').innerHTML=
+      '<div class="login-wrap"><div class="login-box"><div class="logo">⚠️</div>'+
+      '<h1>載入失敗</h1><p>'+esc(e.message)+'</p></div></div>';
+  }
+})();
+</script>
+
+</body>
+</html>
